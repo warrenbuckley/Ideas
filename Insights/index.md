@@ -103,6 +103,34 @@ interface ILineChartInsight : IInsight
 }
 ```
 
+### NumbersDataModel
+```json
+{
+  "label": "Logs",
+  "section": "settings",
+  "data": [
+    {
+      "label": "Info",
+      "value": 2034,
+      "difference": 5,
+      "diffColor": "Green",
+      "diffArrow": "Up"
+    },
+    {
+      "label": "Error",
+      "value": 3000,
+      "difference": 24,
+      "diffColor": "Red",
+      "diffArrow": "Up"
+    }
+  ]
+}
+```
+**NOTE**: The `difference` property, should it be a static number or be a percentage difference?
+
+**NOTE**: `diffColor` is an enum (Red, Green, Neutral) and arrow seperate properties, as for the error example above having the number of errors go up is deemed bad/red where if the number was to go down then it would be green.
+
+
 ## Proposed API responses
 ```csharp
 GetInsights(sectionAlias, startDate, endDate)
