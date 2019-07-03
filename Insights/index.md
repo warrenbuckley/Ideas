@@ -24,34 +24,93 @@ Re-use the Chart.js AngularJS wrapper we use in Log Viewer
 Collections that can be modified in User Composers
 
 ```csharp
-// Composer code...
+// Composer code
 
-composition.insights().AddGraph<NumberOfMembers>()
-composition.insights().AddNumber<NumberOfLockedMembers>();
+using Umbraco.Core.Composing;
+using Umbraco.Web;
+
+namespace My.Website
+{
+    public class CustomInsightsComposer : IUserComposer
+    {
+        public void Compose(Composition composition)
+        {
+            composition.insights().Append<NumberOfMembers>();
+            composition.insights().Append<NumberOfLockedMembers>();
+        }
+    }
+}
 ```
 
 ## Proposed Interfaces
+This is a common interface to all inisght types (Pie Chart, Line Chart & Number)
+
 ```csharp
-interface INumberInsight
+interface IInsight
 {
-  // The alias of the section that this graph will display on
+  // The alias of the section that this insight will display on
   string Section
 
   // The label to be displayed
   // TODO: Perhaps this is a language key & we translate that
   string Label
+}
+```
 
-  // The main method/entry point to fetch/calculate the number
-  // Returns an object with difference & 
-  // if positive or negative difference
-  GetNumber(startDate, endDate)
+```csharp
+interface IPieChartInsight : IInsight
+{
+  // See examples of JSON below for data returned
+  PieChartDataModel GetData(startDate, endDate)
+}
+```
+
+```csharp
+interface INumbersInsight : IInsight
+{
+  // See examples of JSON below for data returned
+  NumbersDataModel GetData(startDate, endDate)
+}
+```
+
+```csharp
+interface ILineChartInsight : IInsight
+{
+  // See examples of JSON below for data returned
+  LineChartDataModel GetData(startDate, endDate)
+}
+```
+
+## Models as JSON
+
+### PieChartDataModel
+```json
+{
+  "label": "Number of Members",
+  "section": "members",
+  "data": [
+    {
+      "label": "Male",
+      "value": 12,
+      "color": "#ff00ff"
+    },
+    {
+      "label": "Female",
+      "value": 24,
+      "color": "#ccc000"
+    }
+  ]
 }
 ```
 
 ## Proposed API responses
 ```csharp
-GetNumberInsights(sectionAlias, startDate, endDate)
+GetInsights(sectionAlias, startDate, endDate)
 {
+  // Get items from collection where section alias match
+  // For each item in the collection determine
+
+
   // If 7 days selected as range
   // then the previous 7 days to that is used for the comparisson
   // Returns a JSON array
