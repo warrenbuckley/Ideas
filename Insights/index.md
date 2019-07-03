@@ -131,25 +131,76 @@ interface ILineChartInsight : IInsight
 **NOTE**: `diffColor` is an enum (Red, Green, Neutral) and arrow seperate properties, as for the error example above having the number of errors go up is deemed bad/red where if the number was to go down then it would be green.
 
 
-## Proposed API responses
+## Proposed API response
 ```csharp
 GetInsights(sectionAlias, startDate, endDate)
 {
   // Get items from collection where section alias match
   // For each item in the collection determine
 
+  // Call each item in collection GetData() method
+  // This API call then will return a collection of insights
+  
+  // We can iterate over this client side & display a pie, line or number collection
+  // in a grid formatation
 
-  // If 7 days selected as range
-  // then the previous 7 days to that is used for the comparisson
-  // Returns a JSON array
-  {
-    label: "Number of Locked Members",
-    total: 42,
-    difference: 12
-    type: postive/negative
-  }
 }
 ```
+
+## Database Storage
+This will need to have some new database tables added in order so we can track & persist numbers for items, as this will allow us to keep historical data over a time period & help with perf as rather than calculating metrics every time we want to view the dashboard, we are able to fetch the numbers from a database.
+
+There will be two approaches to adding data:
+* Every time a member is created we would to listen to the Member created event in Umbraco & increase the count
+* Alternatively a member may not be created on a given day & we would need to schedule a time to run a method to calculate the total of members available at 00:01 every day & use `SetValue`
+
+Thinking about the above scenario, would depend if we are calculating the total number of members every single day OR if we are plotting on a line chart or using the numbers insight to show how many new members are added every day.
+
+```csharp
+// Adding a bulk value
+insightService.AddValue(10, "aliasToInsight");
+
+// Removing a bulk value
+insightService.RemoveValue(4, "aliasToInsight");
+
+// Setting a specific value (may want to override already set value)
+insightService.SetValue(52, "aliasToInsight");
+
+// Adding member count by one - shorthand of AddValue(1, "aliasToInsight")
+insightService.Add("aliasToInsight");
+
+// Decrease count by one - shorthand of RemoveValue(1, "aliasToInsight")
+insightService.Remove("aliasToInsight");
+```
+
+### Database tables
+
+**umbracoInsightMetric**
+
+Column Name | Data Store
+------------ | -------------
+Id | Int
+Metric | String
+
+Id | Metric
+------------ | -------------
+1 | numberOfMembers
+2 | numberOfErrors
+
+**umbracoInsightData**
+
+Column Name | Data Store
+------------ | -------------
+DateMeasured | Date
+Value | Int
+MetricId | Int (Key to other table)
+
+DateMeasured | Value | MetricId
+------------ | ------------- | -------------
+2019-07-03 | 42 | 1
+2019-07-03 | 5 | 2
+2019-07-04 | 0 | 1
+2019-07-04 | 545 | 2
 
 ## First Goals
 * Member Dashboard/section displaying graph & numbers
@@ -164,6 +215,7 @@ GetInsights(sectionAlias, startDate, endDate)
 * Each section has a new dashboard called Insights
 * Displays all number insights on right in boxes takes one third of space
 * Displays all chart data on a single line chart over time on left side takes two thirds of space
+
 
 ## Concerns/Questions
 * What about long running calculations
